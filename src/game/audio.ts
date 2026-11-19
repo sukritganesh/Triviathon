@@ -1,3 +1,5 @@
+import { publicAssetUrl } from './publicAssetUrl';
+
 export type SoundName =
   | 'boardFill'
   | 'buzzerDing'
@@ -63,7 +65,7 @@ export class GameAudio {
     const path = SOUND_PATHS[name];
     if (!availableAudioFiles.has(`/public${path}`)) return;
 
-    const audio = new Audio(path);
+    const audio = new Audio(publicAssetUrl(path));
     audio.preload = 'auto';
     audio.loop = LOOPING_SOUNDS.has(name);
     this.applySettingsToSound(name, audio);

@@ -1,5 +1,6 @@
 import type { BuzzMode, GameSettings, SettingsPlayer } from './types';
 import { DEFAULT_SETTINGS } from './types';
+import { publicAssetUrl } from './publicAssetUrl';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -89,7 +90,7 @@ export function validateSettings(value: unknown): GameSettings {
 
 // Settings live in public/config so the app can change defaults without a rebuild.
 export async function loadSettings(path = '/config/game-settings.json'): Promise<GameSettings> {
-  const response = await fetch(path);
+  const response = await fetch(publicAssetUrl(path));
 
   if (!response.ok) {
     throw new Error(`Could not load settings from ${path}.`);

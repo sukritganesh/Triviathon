@@ -2,6 +2,8 @@
 
 A local browser-based quiz game for one laptop.
 
+[Play Triviathon](https://sukritganesh.github.io/Triviathon/).
+
 ## Project Docs
 
 - Game rules and app behavior: [`docs/GAME_SPEC.md`](docs/GAME_SPEC.md)
