@@ -2,7 +2,7 @@
 
 A local browser-based quiz game for one laptop.
 
-[Play Triviathon](https://sukritganesh.github.io/Triviathon/).
+Run `npm install` and `npm run dev` in this folder, then [play Triviathon on this laptop](http://127.0.0.1:5174/).
 
 ## Project Docs
 

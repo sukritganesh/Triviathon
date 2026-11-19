@@ -8,7 +8,7 @@ Polish keyboard controls and test the full setup-to-standings loop.
 
 ## Completed
 
-- Added GitHub Pages deployment from `main`, with board, settings, and sound-effect URLs resolved under the game’s published path.
+- Switched hosting to the laptop’s loopback address and removed automatic GitHub Pages deployment.
 
 - Renamed the game to Triviathon, including round labels and older imported boards' default round titles.
 - Made setup, final-round, and standings music optional local files. Sound effects ship with the game.
