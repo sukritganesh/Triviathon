@@ -1,0 +1,342 @@
+import { useState, type KeyboardEvent } from 'react';
+import type { AudioSettings, BuzzMode, Player, SetupConfig } from '../game/types';
+import type { Theme } from '../theme';
+import {
+  HOST_SHORTCUTS,
+  getBuzzerKeyProblems,
+  isReservedShortcutKey,
+  normalizeKeyboardKey,
+} from '../game/keyboard';
+
+type SetupScreenProps = {
+  theme: Theme;
+  onThemeChange: (theme: Theme) => void;
+  setup: SetupConfig;
+  boardTitle?: string;
+  boardStatus: 'loading' | 'ready' | 'error';
+  boardError?: string;
+  boardFileError?: string;
+  onBoardFileSelect: (file: File) => void;
+  onPlayerCountChange: (count: number) => void;
+  onPlayerChange: (playerId: string, patch: Partial<Pick<Player, 'name' | 'buzzerKey'>>) => void;
+  onBuzzModeChange: (buzzMode: BuzzMode) => void;
+  onBuzzWindowChange: (seconds: number) => void;
+  onResponseTimeChange: (seconds: number) => void;
+  onFinalJeopardyTimeChange: (seconds: number) => void;
+  onAudioChange: (patch: Partial<AudioSettings>) => void;
+  onDebugAdvanceChange: (enabled: boolean) => void;
+  onStartGame: () => void;
+};
+
+export function SetupScreen({
+  theme,
+  onThemeChange,
+  setup,
+  boardTitle,
+  boardStatus,
+  boardError,
+  boardFileError,
+  onBoardFileSelect,
+  onPlayerCountChange,
+  onPlayerChange,
+  onBuzzModeChange,
+  onBuzzWindowChange,
+  onResponseTimeChange,
+  onFinalJeopardyTimeChange,
+  onAudioChange,
+  onDebugAdvanceChange,
+  onStartGame,
+}: SetupScreenProps) {
+  const [setupPage, setSetupPage] = useState<'players' | 'settings'>('players');
+  const activePlayers = setup.players.filter((player) => player.isActive);
+  const buzzerKeyProblems = getBuzzerKeyProblems(setup.players);
+  const canStart = boardStatus === 'ready' && activePlayers.length > 0 && buzzerKeyProblems.length === 0;
+  const pageTitle = setupPage === 'players' ? 'Triviathon' : 'Game Settings';
+  const reservedShortcutText = HOST_SHORTCUTS.map((shortcut) => shortcut.key).join(' / ');
+
+  function handleBuzzerKeyInput(playerId: string, value: string) {
+    const key = normalizeKeyboardKey(value);
+
+    if (!key || isReservedShortcutKey(key)) {
+      return;
+    }
+
+    if (
+      activePlayers.some(
+        (player) => player.id !== playerId && normalizeKeyboardKey(player.buzzerKey) === key,
+      )
+    ) {
+      return;
+    }
+
+    onPlayerChange(playerId, { buzzerKey: key });
+  }
+
+  function handleBuzzerKeyDown(playerId: string, event: KeyboardEvent<HTMLInputElement>) {
+    if (event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    const key = normalizeKeyboardKey(event.key);
+
+    if (!key) {
+      return;
+    }
+
+    event.preventDefault();
+    handleBuzzerKeyInput(playerId, key);
+  }
+
+  return (
+    <main className="app-shell app-shell--setup">
+      <section
+        className={setupPage === 'players' ? 'setup-panel setup-panel--compact' : 'setup-panel'}
+        aria-labelledby="app-title"
+      >
+        <div className="setup-heading">
+          <h1 id="app-title">{pageTitle}</h1>
+          <div className="board-loadout" aria-live="polite">
+            <span>Board</span>
+            <strong>{boardStatus === 'ready' ? boardTitle : boardStatus}</strong>
+          </div>
+        </div>
+
+        {boardStatus === 'error' && <p className="notice notice--error">{boardError}</p>}
+
+        {setupPage === 'players' ? (
+          <>
+            <fieldset className="form-section setup-front-section">
+              <legend>Players</legend>
+              <label className="field-label" htmlFor="player-count">
+                Player count: {activePlayers.length}
+              </label>
+              <input
+                id="player-count"
+                type="range"
+                min={1}
+                max={4}
+                step={1}
+                value={activePlayers.length}
+                onChange={(event) => onPlayerCountChange(Number(event.target.value))}
+              />
+
+              <div className="player-config-list">
+                {setup.players.map((player, index) =>
+                  player.isActive ? (
+                    <div className="player-name-config" key={player.id}>
+                      <label>
+                        <span>Player {index + 1}</span>
+                        <input
+                          value={player.name}
+                          onChange={(event) => onPlayerChange(player.id, { name: event.target.value })}
+                        />
+                      </label>
+                    </div>
+                  ) : null,
+                )}
+              </div>
+            </fieldset>
+
+            <div className="setup-actions">
+              <button className="ghost-action" type="button" onClick={() => setSetupPage('settings')}>
+                Settings
+              </button>
+              <button className="primary-action" type="button" disabled={!canStart} onClick={onStartGame}>
+                Start Game
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <fieldset className="form-section debug-section">
+              <legend>Appearance</legend>
+              <div className="theme-options">
+                {(['modern', 'retro'] as const).map((option) => (
+                  <label className="radio-card theme-option" key={option}>
+                    <input
+                      type="radio"
+                      name="theme"
+                      checked={theme === option}
+                      onChange={() => onThemeChange(option)}
+                    />
+                    <strong>{option === 'modern' ? 'Modern' : 'Retro'}</strong>
+                    <span className={`theme-swatch theme-swatch--${option}`} aria-hidden="true" />
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className="form-section debug-section">
+              <legend>Board</legend>
+              <div className="board-picker">
+                <div>
+                  <span>Current board</span>
+                  <strong>{boardStatus === 'ready' ? boardTitle : boardStatus}</strong>
+                </div>
+                <label>
+                  <span>Select board JSON</span>
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      event.currentTarget.value = '';
+
+                      if (file) {
+                        onBoardFileSelect(file);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              {boardFileError && <p className="notice notice--error">{boardFileError}</p>}
+            </fieldset>
+
+            <fieldset className="form-section debug-section">
+              <legend>Audio</legend>
+              <label className="field-label" htmlFor="music-volume">
+                Music volume: {Math.round(setup.audio.musicVolume * 100)}%
+              </label>
+              <input
+                id="music-volume"
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={Math.round(setup.audio.musicVolume * 100)}
+                onChange={(event) => onAudioChange({ musicVolume: Number(event.target.value) / 100 })}
+              />
+              <label className="field-label timer-field-label" htmlFor="effects-volume">
+                Sound effects: {Math.round(setup.audio.effectsVolume * 100)}%
+              </label>
+              <input
+                id="effects-volume"
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={Math.round(setup.audio.effectsVolume * 100)}
+                onChange={(event) => onAudioChange({ effectsVolume: Number(event.target.value) / 100 })}
+              />
+            </fieldset>
+
+            <div className="setup-grid">
+              <fieldset className="form-section">
+                <legend>Buzzer Keys</legend>
+                <p className="field-help">Reserved host shortcut keys: {reservedShortcutText}</p>
+                {buzzerKeyProblems.length > 0 && (
+                  <div className="notice notice--error">
+                    {buzzerKeyProblems.map((problem) => (
+                      <p key={problem}>{problem}</p>
+                    ))}
+                  </div>
+                )}
+                <div className="player-config-list">
+                  {setup.players.map((player, index) =>
+                    player.isActive ? (
+                      <div className="player-config player-config--keys" key={player.id}>
+                        <span>{player.name.trim() || `Player ${index + 1}`}</span>
+                        <label>
+                          <span>Buzzer</span>
+                          <input
+                            maxLength={1}
+                            value={player.buzzerKey}
+                            aria-label={`${player.name} buzzer key`}
+                            onKeyDown={(event) => handleBuzzerKeyDown(player.id, event)}
+                            onChange={(event) => handleBuzzerKeyInput(player.id, event.target.value)}
+                          />
+                        </label>
+                      </div>
+                    ) : null,
+                  )}
+                </div>
+              </fieldset>
+
+              <fieldset className="form-section">
+                <legend>Buzzer Mode</legend>
+                <label className="radio-card">
+                  <input
+                    type="radio"
+                    name="buzz-mode"
+                    checked={setup.buzzMode === 'afterRead'}
+                    onChange={() => onBuzzModeChange('afterRead')}
+                  />
+                  <span>
+                    <strong>Buzz after clue</strong>
+                    <small>Players buzz once reading finishes.</small>
+                  </span>
+                </label>
+                <label className="radio-card">
+                  <input
+                    type="radio"
+                    name="buzz-mode"
+                    checked={setup.buzzMode === 'early'}
+                    onChange={() => onBuzzModeChange('early')}
+                  />
+                  <span>
+                    <strong>Allow early buzz</strong>
+                    <small>Buzzing can interrupt clue reading.</small>
+                  </span>
+                </label>
+              </fieldset>
+            </div>
+
+            <fieldset className="form-section debug-section">
+              <legend>Host Lab</legend>
+              <label className="field-label" htmlFor="buzz-window-timer">
+                Buzz window: {setup.buzzWindowSeconds}s
+              </label>
+              <input
+                id="buzz-window-timer"
+                type="range"
+                min={3}
+                max={8}
+                step={1}
+                value={setup.buzzWindowSeconds}
+                onChange={(event) => onBuzzWindowChange(Number(event.target.value))}
+              />
+              <label className="field-label timer-field-label" htmlFor="response-timer">
+                Response window: {setup.responseTimeSeconds}s
+              </label>
+              <input
+                id="response-timer"
+                type="range"
+                min={3}
+                max={8}
+                step={1}
+                value={setup.responseTimeSeconds}
+                onChange={(event) => onResponseTimeChange(Number(event.target.value))}
+              />
+              <label className="field-label timer-field-label" htmlFor="final-jeopardy-timer">
+                Final Round: {setup.finalJeopardyTimeSeconds}s
+              </label>
+              <input
+                id="final-jeopardy-timer"
+                type="range"
+                min={15}
+                max={60}
+                step={5}
+                value={setup.finalJeopardyTimeSeconds}
+                onChange={(event) => onFinalJeopardyTimeChange(Number(event.target.value))}
+              />
+              <label className="radio-card">
+                <input
+                  type="checkbox"
+                  checked={setup.debugAdvanceAfterOneClue}
+                  onChange={(event) => onDebugAdvanceChange(event.target.checked)}
+                />
+                <span>
+                  <strong>One-clue rounds</strong>
+                  <small>Debug shortcut: advance after one clue so Final Round is easy to test.</small>
+                </span>
+              </label>
+            </fieldset>
+
+            <button className="ghost-action" type="button" onClick={() => setSetupPage('players')}>
+              Back to Players
+            </button>
+          </>
+        )}
+      </section>
+    </main>
+  );
+}

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Triviathon screen gallery</title>
+  <style>
+    :root { color-scheme: dark; font: 100%/1.5 'Segoe UI', system-ui, sans-serif; color: #f1f5fc; background: #0a1324; accent-color: #f2ca7e; }
+    * { box-sizing: border-box; }
+    body { max-width: 1440px; margin: auto; padding: clamp(20px, 4vw, 52px); }
+    header { display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+    h1 { margin: 0; font: 400 clamp(2rem, 4vw, 3.4rem)/1.1 Georgia, serif; letter-spacing: -.045em; }
+    p { color: #b4c3d8; margin: 8px 0 0; }
+    fieldset { display: flex; gap: 12px; border: 1px solid #40536d; border-radius: 8px; padding: 5px 12px 10px; }
+    legend { color: #f2ca7e; padding: 0 5px; }
+    label { cursor: pointer; }
+    main { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+    a { display: flex; flex-direction: column; text-decoration: none; color: inherit; border-radius: 10px; border: 1px solid #364660; overflow: hidden; background: #101c30; }
+    a:is(:hover, :focus-visible) { border-color: #f2ca7e; }
+    img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: contain; background: #080f20; }
+    span { border-top: 1px solid #30405a; padding: 9px 14px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Triviathon screen gallery</h1>
+      <p>Select a screen to view the full-size capture.</p>
+    </div>
+    <fieldset>
+      <legend>Appearance</legend>
+      <label><input type="radio" name="theme" value="modern" checked> Modern</label>
+      <label><input type="radio" name="theme" value="retro"> Retro</label>
+    </fieldset>
+  </header>
+  <main aria-label="Game screens">
+    <a href="modern-setup.webp" data-screen="setup">
+      <img src="modern-setup.webp" alt=""><span>Player setup</span>
+    </a>
+    <a href="modern-settings.webp" data-screen="settings">
+      <img src="modern-settings.webp" alt=""><span>Game settings</span>
+    </a>
+    <a href="modern-board.webp" data-screen="board">
+      <img src="modern-board.webp" alt=""><span>Triviathon board</span>
+    </a>
+    <a href="modern-clue.webp" data-screen="clue">
+      <img src="modern-clue.webp" alt=""><span>Open buzzing</span>
+    </a>
+    <a href="modern-answer.webp" data-screen="answer">
+      <img src="modern-answer.webp" alt=""><span>Answer and host scoring</span>
+    </a>
+    <a href="modern-transition.webp" data-screen="transition">
+      <img src="modern-transition.webp" alt=""><span>Round transition</span>
+    </a>
+    <a href="modern-double-board.webp" data-screen="double-board">
+      <img src="modern-double-board.webp" alt=""><span>Double Points board</span>
+    </a>
+    <a href="modern-daily-wager.webp" data-screen="daily-wager">
+      <img src="modern-daily-wager.webp" alt=""><span>Daily Double wager</span>
+    </a>
+    <a href="modern-daily-clue.webp" data-screen="daily-clue">
+      <img src="modern-daily-clue.webp" alt=""><span>Daily Double clue</span>
+    </a>
+    <a href="modern-final-wagers.webp" data-screen="final-wagers">
+      <img src="modern-final-wagers.webp" alt=""><span>Final Round wagers</span>
+    </a>
+    <a href="modern-final-clue.webp" data-screen="final-clue">
+      <img src="modern-final-clue.webp" alt=""><span>Final Round clue</span>
+    </a>
+    <a href="modern-final-judging.webp" data-screen="final-judging">
+      <img src="modern-final-judging.webp" alt=""><span>Final Round scoring</span>
+    </a>
+    <a href="modern-standings.webp" data-screen="standings">
+      <img src="modern-standings.webp" alt=""><span>Final standings</span>
+    </a>
+  </main>
+  <script>
+    function showSelection() {
+      const theme = document.querySelector('input[name="theme"]:checked').value;
+      for (const link of document.querySelectorAll('[data-screen]')) {
+        const file = theme + '-' + link.dataset.screen + '.webp';
+        link.href = file;
+        link.querySelector('img').src = file;
+      }
+    }
+    document.querySelector('fieldset').addEventListener('change', showSelection);
+    window.addEventListener('pageshow', showSelection);
+  </script>
+</body>
+</html>
