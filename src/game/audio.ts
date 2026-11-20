@@ -1,4 +1,5 @@
 import { publicAssetUrl } from './publicAssetUrl';
+import { convertFileSrc, invoke, isTauri } from '@tauri-apps/api/core';
 
 export type SoundName =
   | 'boardFill'
@@ -31,8 +32,18 @@ const SOUND_PATHS: Record<SoundName, string> = {
 
 const LOOPING_SOUNDS = new Set<SoundName>(['jeopardyTheme', 'thinkingMusic']);
 const MUSIC_SOUNDS = new Set<SoundName>(['jeopardyTheme', 'outroMusic', 'thinkingMusic']);
-// Enumerate filenames at build time so optional local music never triggers a missing-file request.
-const availableAudioFiles = new Set(Object.keys(import.meta.glob('/public/audio/*.mp3')));
+declare const __GAME_AUDIO_FILES__: string[];
+const availableAudioFiles = new Set(__GAME_AUDIO_FILES__);
+const desktopMusic = new Map<string, string>();
+
+/** Discover the user's optional tracks before the first audio gesture. */
+export async function prepareLocalMusic() {
+  if (!isTauri()) return;
+  const tracks = await invoke<Record<string, string>>('local_music');
+  for (const [filename, path] of Object.entries(tracks)) {
+    desktopMusic.set(filename, convertFileSrc(path));
+  }
+}
 
 function isBrowserAudioAvailable() {
   return typeof Audio !== 'undefined';
@@ -63,9 +74,12 @@ export class GameAudio {
     }
 
     const path = SOUND_PATHS[name];
-    if (!availableAudioFiles.has(`/public${path}`)) return;
-
-    const audio = new Audio(publicAssetUrl(path));
+    const filename = path.slice('/audio/'.length);
+    const url = isTauri() && MUSIC_SOUNDS.has(name)
+      ? desktopMusic.get(filename)
+      : availableAudioFiles.has(filename) && publicAssetUrl(path);
+    if (!url) return;
+    const audio = new Audio(url);
     audio.preload = 'auto';
     audio.loop = LOOPING_SOUNDS.has(name);
     this.applySettingsToSound(name, audio);

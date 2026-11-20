@@ -1,0 +1,36 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Triviathon",
+  "version": "../package.json",
+  "identifier": "com.sukritganesh.triviathon",
+  "build": {
+    "beforeDevCommand": "npm run dev -- --port 5175",
+    "devUrl": "http://127.0.0.1:5175",
+    "beforeBuildCommand": "npm run build:desktop",
+    "frontendDist": "../dist-desktop"
+  },
+  "app": {
+    "windows": [{ "title": "Triviathon", "width": 1280, "height": 800, "minWidth": 640, "minHeight": 480 }],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; media-src 'self' http://asset.localhost; object-src 'none'",
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$APPLOCALDATA/music/jeopardyTheme80s.mp3",
+          "$APPLOCALDATA/music/thinkingMusic.mp3",
+          "$APPLOCALDATA/music/outroMusic.mp3"
+        ]
+      },
+      "capabilities": [{ "identifier": "game-window", "windows": ["main"], "permissions": [] }]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/icon.ico"],
+    "windows": {
+      "nsis": { "installMode": "currentUser" },
+      "webviewInstallMode": { "type": "offlineInstaller" }
+    }
+  }
+}
