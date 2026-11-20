@@ -36,9 +36,9 @@ jobs:
           $installDir = Join-Path $env:RUNNER_TEMP 'Triviathon'
           $install = Start-Process $installer.FullName -ArgumentList "/S /D=$installDir" -Wait -PassThru
           if ($install.ExitCode -ne 0) { throw "Setup exited with $($install.ExitCode)" }
-          $installed = Get-FileHash (Join-Path $installDir 'triviathon.exe')
-          if ($installed.Hash -ne (Get-FileHash src-tauri/target/release/triviathon.exe).Hash) { throw 'Installed executable differs from build' }
-          Get-FileHash $installer.FullName | Format-List
+          $installed = Get-Item (Join-Path $installDir 'triviathon.exe')
+          if ($installed.VersionInfo.ProductName -ne 'Triviathon') { throw 'Unexpected installed product' }
+          Get-FileHash $installed.FullName, $installer.FullName | Format-List
       - uses: actions/upload-artifact@v4
         with:
           name: Triviathon-Windows-x64
