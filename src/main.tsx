@@ -4,12 +4,11 @@ import './styles.css';
 import './modern.css';
 import App from './App';
 import { prepareLocalMusic } from './game/audio';
+import { loadMusicLibrary } from './game/musicLibrary';
 
 async function startGame() {
-  try {
-    await prepareLocalMusic();
-  } catch (error) {
-    console.warn('Optional local music is unavailable.', error);
+  for (const result of await Promise.allSettled([prepareLocalMusic(), loadMusicLibrary()])) {
+    if (result.status === 'rejected') console.warn('Optional local music is unavailable.', result.reason);
   }
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

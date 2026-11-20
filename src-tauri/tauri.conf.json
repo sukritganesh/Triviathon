@@ -10,9 +10,9 @@
     "frontendDist": "../dist-desktop"
   },
   "app": {
-    "windows": [{ "title": "Triviathon", "width": 1280, "height": 800, "minWidth": 640, "minHeight": 480 }],
+    "windows": [{ "title": "Triviathon", "fullscreen": true, "width": 1280, "height": 800, "minWidth": 640, "minHeight": 480 }],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; media-src 'self' http://asset.localhost; object-src 'none'",
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; media-src 'self' blob: http://asset.localhost; object-src 'none'",
       "assetProtocol": {
         "enable": true,
         "scope": [
@@ -21,7 +21,7 @@
           "$APPLOCALDATA/music/outroMusic.mp3"
         ]
       },
-      "capabilities": [{ "identifier": "game-window", "windows": ["main"], "permissions": [] }]
+      "capabilities": [{ "identifier": "game-window", "windows": ["main"], "permissions": ["core:window:allow-is-fullscreen", "core:window:allow-set-fullscreen"] }]
     }
   },
   "bundle": {

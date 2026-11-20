@@ -1,6 +1,8 @@
 import { useState, type KeyboardEvent } from 'react';
 import type { AudioSettings, BuzzMode, Player, SetupConfig } from '../game/types';
 import type { Theme } from '../theme';
+import type { MusicSlot } from '../game/musicLibrary';
+import { MusicPicker } from './MusicPicker';
 import {
   HOST_SHORTCUTS,
   getBuzzerKeyProblems,
@@ -24,6 +26,7 @@ type SetupScreenProps = {
   onResponseTimeChange: (seconds: number) => void;
   onFinalJeopardyTimeChange: (seconds: number) => void;
   onAudioChange: (patch: Partial<AudioSettings>) => void;
+  onMusicChange: (slot: MusicSlot) => void;
   onDebugAdvanceChange: (enabled: boolean) => void;
   onStartGame: () => void;
 };
@@ -44,6 +47,7 @@ export function SetupScreen({
   onResponseTimeChange,
   onFinalJeopardyTimeChange,
   onAudioChange,
+  onMusicChange,
   onDebugAdvanceChange,
   onStartGame,
 }: SetupScreenProps) {
@@ -219,6 +223,7 @@ export function SetupScreen({
               />
             </fieldset>
 
+            <MusicPicker onChange={onMusicChange} />
             <div className="setup-grid">
               <fieldset className="form-section">
                 <legend>Buzzer Keys</legend>

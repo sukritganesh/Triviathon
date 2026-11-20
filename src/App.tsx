@@ -9,6 +9,9 @@ import { RoundTransitionScreen } from './components/RoundTransitionScreen';
 import { ShortcutLegend } from './components/ShortcutLegend';
 import { SetupScreen } from './components/SetupScreen';
 import { GameAudio } from './game/audio';
+import { isTauri } from '@tauri-apps/api/core';
+import { FullscreenButton } from './components/FullscreenButton';
+import type { MusicSlot } from './game/musicLibrary';
 import { loadBoard } from './game/boardLoader';
 import { validateBoard } from './game/boardValidation';
 import {
@@ -87,6 +90,7 @@ function App() {
   const [finalResponseIsRevealed, setFinalResponseIsRevealed] = useState(false);
   const [finalClueIsBeingRead, setFinalClueIsBeingRead] = useState(false);
   const [audioIsUnlocked, setAudioIsUnlocked] = useState(false);
+  const [musicRevision, setMusicRevision] = useState(0);
   const speechRunRef = useRef(0);
   const finalSpeechRunRef = useRef(0);
   const audioRef = useRef<GameAudio | null>(null);
@@ -98,6 +102,11 @@ function App() {
     audioRef.current ??= new GameAudio();
     return audioRef.current;
   }, []);
+
+  function changeMusic(slot: MusicSlot) {
+    getAudio().refreshMusic(slot);
+    setMusicRevision(value => value + 1);
+  }
 
   useEffect(() => {
     let isCurrent = true;
@@ -195,6 +204,7 @@ function App() {
   }, [
     appData.status,
     audioIsUnlocked,
+    musicRevision,
     finalClueIsBeingRead,
     finalResponseIsRevealed,
     getAudio,
@@ -771,14 +781,17 @@ function App() {
     return (
       <>
         <ShortcutLegend />
-        <button
-          className={setup.audio.isMuted ? 'mute-button mute-button--muted' : 'mute-button'}
-          type="button"
-          aria-pressed={!setup.audio.isMuted}
-          onClick={handleToggleAudioMute}
-        >
-          {setup.audio.isMuted ? 'Muted' : 'Sound On'}
-        </button>
+        <div className="window-controls">
+          {isTauri() && <FullscreenButton />}
+          <button
+            className={setup.audio.isMuted ? 'mute-button mute-button--muted' : 'mute-button'}
+            type="button"
+            aria-pressed={!setup.audio.isMuted}
+            onClick={handleToggleAudioMute}
+          >
+            {setup.audio.isMuted ? 'Muted' : 'Sound On'}
+          </button>
+        </div>
         {content}
       </>
     );
@@ -802,6 +815,7 @@ function App() {
         onResponseTimeChange={handleResponseTimeChange}
         onFinalJeopardyTimeChange={handleFinalJeopardyTimeChange}
         onAudioChange={handleAudioChange}
+        onMusicChange={changeMusic}
         onDebugAdvanceChange={handleDebugAdvanceChange}
         onStartGame={handleStartGame}
       />,

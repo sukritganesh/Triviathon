@@ -1,5 +1,6 @@
 import { publicAssetUrl } from './publicAssetUrl';
 import { convertFileSrc, invoke, isTauri } from '@tauri-apps/api/core';
+import { musicSlots, selectedTrack, type MusicSlot } from './musicLibrary';
 
 export type SoundName =
   | 'boardFill'
@@ -31,7 +32,9 @@ const SOUND_PATHS: Record<SoundName, string> = {
 };
 
 const LOOPING_SOUNDS = new Set<SoundName>(['jeopardyTheme', 'thinkingMusic']);
-const MUSIC_SOUNDS = new Set<SoundName>(['jeopardyTheme', 'outroMusic', 'thinkingMusic']);
+function isMusic(name: SoundName): name is MusicSlot {
+  return Object.hasOwn(musicSlots, name);
+}
 declare const __GAME_AUDIO_FILES__: string[];
 const availableAudioFiles = new Set(__GAME_AUDIO_FILES__);
 const desktopMusic = new Map<string, string>();
@@ -49,6 +52,11 @@ function isBrowserAudioAvailable() {
   return typeof Audio !== 'undefined';
 }
 
+export function defaultMusicName(slot: MusicSlot) {
+  const filename = SOUND_PATHS[slot].slice('/audio/'.length);
+  return (isTauri() ? desktopMusic.has(filename) : availableAudioFiles.has(filename)) ? filename : undefined;
+}
+
 export class GameAudio {
   private sounds = new Map<SoundName, HTMLAudioElement>();
   private settings: AudioMixerSettings = {
@@ -58,7 +66,7 @@ export class GameAudio {
   };
 
   private getVolume(name: SoundName) {
-    return MUSIC_SOUNDS.has(name) ? this.settings.musicVolume : this.settings.effectsVolume;
+    return isMusic(name) ? this.settings.musicVolume : this.settings.effectsVolume;
   }
 
   private applySettingsToSound(name: SoundName, audio: HTMLAudioElement) {
@@ -75,9 +83,10 @@ export class GameAudio {
 
     const path = SOUND_PATHS[name];
     const filename = path.slice('/audio/'.length);
-    const url = isTauri() && MUSIC_SOUNDS.has(name)
+    const fallback = isTauri() && isMusic(name)
       ? desktopMusic.get(filename)
       : availableAudioFiles.has(filename) && publicAssetUrl(path);
+    const url = (isMusic(name) && selectedTrack(name)?.url) || fallback;
     if (!url) return;
     const audio = new Audio(url);
     audio.preload = 'auto';
@@ -146,6 +155,11 @@ export class GameAudio {
   stopAmbient() {
     this.stop('jeopardyTheme');
     this.stop('thinkingMusic');
+  }
+
+  refreshMusic(slot: MusicSlot) {
+    this.stop(slot);
+    this.sounds.delete(slot);
   }
 
   pauseAll() {

@@ -8,6 +8,8 @@ Polish keyboard controls and test the full setup-to-standings loop.
 
 ## Completed
 
+- Added persistent per-slot MP3 selection in Settings and native desktop fullscreen with F11 and Escape.
+
 - Added a Tauri Windows desktop build with offline WebView2 installation and separate per-user music. The installer embeds the boards and game effects.
 
 - Switched hosting to the laptop’s loopback address and removed automatic GitHub Pages deployment.

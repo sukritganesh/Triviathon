@@ -159,14 +159,14 @@
   }
   button:enabled:hover { filter: brightness(1.15); }
   button:enabled:active { filter: brightness(.95); }
-  .mute-button, .shortcut-legend {
+  .window-controls button, .shortcut-legend {
     background: #101c30;
     border: 1px solid var(--edge);
     border-radius: 9px;
     color: var(--ink);
     box-shadow: none;
   }
-  .mute-button { font-size: .88rem; font-weight: 600; }
+  .window-controls button { font-size: .88rem; font-weight: 600; }
   .mute-button--muted { color: var(--muted); }
   .shortcut-legend > span { color: var(--muted); }
   .shortcut-legend dd { color: var(--muted); font-size: .84rem; font-weight: 500; }
@@ -288,7 +288,9 @@
     .shortcut-legend dl { display: flex; gap: 14px; margin: 0; }
     .shortcut-legend div { display: flex; gap: 6px; }
     .shortcut-legend dt { min-height: 22px; min-width: 23px; }
-    .mute-button { top: 8px; min-height: 34px; padding-block: 5px; }
+    .window-controls { top: 8px; }
+    .window-controls button { min-height: 34px; padding-block: 5px; }
+    &:has(.fullscreen-button) .shortcut-legend { padding-right: 158px; }
     .app-shell, .game-shell { min-height: calc(100vh - 52px); }
   }
 }
